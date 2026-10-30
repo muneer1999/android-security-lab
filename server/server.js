@@ -303,6 +303,8 @@ socket.on("watch-session", data => {
   socket.emit("watch-session-ready", {
     id
   });
+  io.to(id).emit("viewer-ready");
+  
 });
 
 /* ADMIN SENDS WEBRTC ANSWER TO PARTICIPANT */
