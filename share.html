@@ -1,0 +1,511 @@
+
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101d32">
+<title>Android Security Lab | Sharing</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#0b1220;
+  color:#edf4ff;
+  line-height:1.6;
+}
+header{
+  padding:28px 16px;
+  text-align:center;
+  background:linear-gradient(135deg,#17345b,#101827);
+  border-bottom:1px solid #293a53;
+}
+.logo{font-size:38px}
+h1{margin:5px 0;font-size:27px}
+header p{color:#aebed3;margin:5px}
+.container{max-width:650px;margin:25px auto;padding:0 14px 40px}
+.card{
+  background:#121d30;
+  border:1px solid #293a53;
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:16px;
+}
+.card h2{margin:0 0 8px;font-size:19px}
+.muted{color:#9fb0c9;font-size:14px}
+.option{
+  display:flex;
+  align-items:flex-start;
+  gap:13px;
+  padding:15px;
+  background:#18263c;
+  border:1px solid #30435e;
+  border-radius:12px;
+  margin-top:11px;
+}
+.option input{width:21px;height:21px;margin-top:3px;accent-color:#60a5fa}
+.option strong{display:block}
+.option small{color:#9fb0c9}
+button{
+  width:100%;
+  border:0;
+  border-radius:11px;
+  padding:15px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:12px;
+  background:#60a5fa;
+  color:#071426;
+}
+button:disabled{opacity:.5;cursor:wait}
+button.stop{background:#7f2638;color:white}
+.result{
+  background:#0b1423;
+  border:1px solid #293a53;
+  padding:14px;
+  border-radius:10px;
+  margin-top:14px;
+  font-size:14px;
+  overflow-wrap:anywhere;
+}
+.success{border-color:#27674b;color:#a7f3c5}
+.error{border-color:#753344;color:#fecdd3}
+.warning{
+  padding:13px;
+  border-radius:10px;
+  background:#332a17;
+  color:#fcd98b;
+  font-size:13px;
+  margin-top:14px;
+}
+video{
+  width:100%;
+  max-height:300px;
+  background:#000;
+  border-radius:12px;
+  margin-top:12px;
+}
+.hidden{display:none!important}
+footer{text-align:center;color:#8294ad;font-size:12px;padding:20px}
+</style>
+
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🛡️</div>
+  <h1>Android Security Lab</h1>
+  <p>Private, permission-based sharing</p>
+</header>
+
+<main class="container">
+
+  <section class="card">
+    <h2>Welcome</h2>
+    <p class="muted">
+      Choose what you want to share with the administrator.
+      Nothing is shared until you select the options and press
+      Start Sharing. Your browser will also ask for the relevant
+      permissions.
+    </p>
+
+```
+<div class="warning">
+  Important: Location, camera and microphone information can
+  be viewed by the administrator while your sharing session
+  is active. Do not share anything unless you understand
+  and agree.
+</div>
+```
+
+  </section>
+
+  <section class="card" id="choiceCard">
+    <h2>Choose sharing permissions</h2>
+
+```
+<label class="option">
+  <input type="checkbox" id="shareLocation">
+  <span>
+    <strong>📍 Share my location</strong>
+    <small>Share your current GPS location while sharing is active.</small>
+  </span>
+</label>
+
+<label class="option">
+  <input type="checkbox" id="shareCamera">
+  <span>
+    <strong>📷 Share my camera</strong>
+    <small>Allow the administrator to view your live camera stream.</small>
+  </span>
+</label>
+
+<label class="option">
+  <input type="checkbox" id="shareMicrophone">
+  <span>
+    <strong>🎙️ Share my microphone</strong>
+    <small>Allow the administrator to hear your live microphone stream.</small>
+  </span>
+</label>
+
+<label class="option">
+  <input type="checkbox" id="shareDevice">
+  <span>
+    <strong>📱 Share device information</strong>
+    <small>Share browser, platform, language and screen dimensions.</small>
+  </span>
+</label>
+
+<button id="startButton" onclick="startSharing()">
+  START SHARING
+</button>
+
+<div id="result" class="result">
+  No sharing session is active.
+</div>
+```
+
+  </section>
+
+  <section class="card hidden" id="activeCard">
+    <h2>🟢 Sharing is active</h2>
+    <p class="muted">
+      Your selected information is being shared with the administrator.
+      You can stop immediately at any time.
+    </p>
+
+```
+<div id="sessionInfo" class="result success"></div>
+
+<video id="localVideo" autoplay playsinline muted></video>
+
+<button class="stop" onclick="stopSharing()">
+  STOP SHARING NOW
+</button>
+```
+
+  </section>
+
+</main>
+
+<footer>
+  Android Security Lab · Sharing is voluntary and can be stopped at any time.
+</footer>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+<script>
+const API = "https://android-security-lab.onrender.com";
+
+let socket = null;
+let peer = null;
+let mediaStream = null;
+let locationWatch = null;
+let participantToken = null;
+let sessionId = null;
+let sharingActive = false;
+
+const $ = id => document.getElementById(id);
+
+function showMessage(text,type=""){
+  $("result").textContent = text;
+  $("result").className = "result " + type;
+}
+
+function getPosition(){
+  return new Promise((resolve,reject)=>{
+    if(!navigator.geolocation){
+      reject(new Error("Location is not supported."));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      resolve,
+      reject,
+      {
+        enableHighAccuracy:true,
+        timeout:20000,
+        maximumAge:0
+      }
+    );
+  });
+}
+
+function deviceInformation(){
+  return {
+    browser:navigator.userAgent,
+    platform:navigator.platform || "Not available",
+    language:navigator.language || "Not available",
+    screen:screen.width + " x " + screen.height
+  };
+}
+
+async function startSharing(){
+
+  if(sharingActive)return;
+
+  const selected = {
+    location:$("shareLocation").checked,
+    camera:$("shareCamera").checked,
+    microphone:$("shareMicrophone").checked,
+    device:$("shareDevice").checked
+  };
+
+  if(!Object.values(selected).some(Boolean)){
+    showMessage("Please select at least one sharing option.","error");
+    return;
+  }
+
+  $("startButton").disabled = true;
+  $("startButton").textContent = "REQUESTING PERMISSIONS...";
+
+  let position = null;
+
+  try{
+
+    if(selected.location){
+      position = await getPosition();
+    }
+
+    if(selected.camera || selected.microphone){
+
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        video:selected.camera,
+        audio:selected.microphone
+      });
+
+      $("localVideo").srcObject = mediaStream;
+      $("localVideo").classList.remove("hidden");
+    }
+
+    const response = await fetch(API + "/api/sessions",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({sharing:selected})
+    });
+
+    const data = await response.json();
+
+    if(!response.ok){
+      throw new Error(data.error || "Unable to create sharing session.");
+    }
+
+    sessionId = data.id;
+    participantToken = data.participantToken;
+    sharingActive = true;
+
+    socket = io(API,{
+      auth:{token:participantToken},
+      transports:["websocket","polling"]
+    });
+
+    socket.on("connect",()=>{
+      if(position){
+        sendLocation(position);
+
+        locationWatch = navigator.geolocation.watchPosition(
+          sendLocation,
+          error=>console.warn("Location update:",error.message),
+          {
+            enableHighAccuracy:true,
+            maximumAge:5000,
+            timeout:20000
+          }
+        );
+      }
+
+      if(selected.device){
+        socket.emit("share-device",deviceInformation());
+      }
+
+      showActive(data.code,selected);
+    });
+
+    socket.on("connect_error",error=>{
+      showMessage(
+        "Connection error: " + error.message +
+        ". Please stop sharing and try again.",
+        "error"
+      );
+    });
+
+    socket.on("viewer-ready",createOffer);
+
+    socket.on("webrtc-answer",async data=>{
+      if(!peer || !data.description)return;
+
+      try{
+        await peer.setRemoteDescription(data.description);
+      }catch(error){
+        console.error("WebRTC answer error:",error);
+      }
+    });
+
+    socket.on("webrtc-answer-ice",async data=>{
+      if(!peer || !data.candidate)return;
+
+      try{
+        await peer.addIceCandidate(data.candidate);
+      }catch(error){
+        console.warn("ICE candidate:",error);
+      }
+    });
+
+    socket.on("session-ended",()=>{
+      stopSharing(false);
+      showMessage("The administrator ended this sharing session.","error");
+    });
+
+    showMessage("Connecting to the sharing server...","info");
+
+  }catch(error){
+
+    if(mediaStream){
+      mediaStream.getTracks().forEach(track=>track.stop());
+      mediaStream = null;
+    }
+
+    $("localVideo").srcObject = null;
+    $("localVideo").classList.add("hidden");
+
+    $("startButton").disabled = false;
+    $("startButton").textContent = "START SHARING";
+
+    showMessage(error.message || "Unable to start sharing.","error");
+  }
+}
+
+function sendLocation(position){
+  if(!socket || !socket.connected || !sharingActive)return;
+
+  socket.emit("share-location",{
+    latitude:position.coords.latitude,
+    longitude:position.coords.longitude,
+    accuracy:position.coords.accuracy
+  });
+}
+
+function showActive(code,selected){
+
+  $("choiceCard").classList.add("hidden");
+  $("activeCard").classList.remove("hidden");
+
+  const names = [];
+
+  if(selected.location)names.push("Location");
+  if(selected.camera)names.push("Camera");
+  if(selected.microphone)names.push("Microphone");
+  if(selected.device)names.push("Device information");
+
+  $("sessionInfo").textContent =
+    "Session code: " + code +
+    "\nShared features: " + names.join(", ") +
+    "\nConnection: Connected";
+}
+
+async function createOffer(){
+
+  if(!socket || !mediaStream || !sharingActive)return;
+
+  try{
+
+    if(peer){
+      peer.close();
+    }
+
+    peer = new RTCPeerConnection({
+      iceServers:[
+        {urls:"stun:stun.l.google.com:19302"}
+      ]
+    });
+
+    mediaStream.getTracks().forEach(track=>{
+      peer.addTrack(track,mediaStream);
+    });
+
+    peer.onicecandidate=event=>{
+      if(event.candidate && socket){
+        socket.emit("webrtc-offer-ice",{
+          candidate:event.candidate
+        });
+      }
+    };
+
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+
+    socket.emit("webrtc-offer",{
+      description:peer.localDescription
+    });
+
+  }catch(error){
+    console.error("Could not start live media:",error);
+  }
+}
+
+function stopSharing(notifyServer=true){
+
+  sharingActive = false;
+
+  if(locationWatch !== null){
+    navigator.geolocation.clearWatch(locationWatch);
+    locationWatch = null;
+  }
+
+  if(peer){
+    peer.close();
+    peer = null;
+  }
+
+  if(mediaStream){
+    mediaStream.getTracks().forEach(track=>track.stop());
+    mediaStream = null;
+  }
+
+  $("localVideo").srcObject = null;
+  $("localVideo").classList.add("hidden");
+
+  if(socket){
+    if(notifyServer && socket.connected){
+      socket.emit("stop-sharing");
+    }
+
+    socket.disconnect();
+    socket = null;
+  }
+
+  sessionId = null;
+  participantToken = null;
+
+  $("activeCard").classList.add("hidden");
+  $("choiceCard").classList.remove("hidden");
+
+  $("startButton").disabled = false;
+  $("startButton").textContent = "START SHARING";
+
+  showMessage("Sharing stopped. Camera, microphone and location updates are no longer being shared.","success");
+}
+
+window.addEventListener("beforeunload",()=>{
+  if(locationWatch !== null){
+    navigator.geolocation.clearWatch(locationWatch);
+  }
+
+  if(peer)peer.close();
+
+  if(mediaStream){
+    mediaStream.getTracks().forEach(track=>track.stop());
+  }
+
+  if(socket && socket.connected){
+    socket.emit("stop-sharing");
+  }
+});
+</script>
+
+</body>
+</html>
