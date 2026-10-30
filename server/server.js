@@ -10,6 +10,8 @@ const { Server } = require("socket.io");
 require("dotenv").config();
 
 const app = express();
+// Trust Render reverse proxy
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
