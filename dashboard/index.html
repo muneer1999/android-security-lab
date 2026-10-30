@@ -1,26 +1,36 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Android Security Lab — Private Dashboard</title>
+<title>Android Security Lab | Admin Dashboard</title>
 
 <style>
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:Arial,sans-serif;
-  background:#eef3f9;
+  background:#edf2f8;
   color:#17243a;
 }
+
 header{
   background:#10233f;
   color:white;
   padding:22px;
 }
+
 header h1{margin:0;font-size:23px}
-header p{margin:7px 0 0;color:#b9c9df}
-.container{max-width:1050px;margin:25px auto;padding:15px}
+header p{color:#b9c9df;margin:7px 0 0}
+
+.container{
+  max-width:1100px;
+  margin:25px auto;
+  padding:15px;
+}
+
 .card{
   background:white;
   padding:22px;
@@ -28,14 +38,17 @@ header p{margin:7px 0 0;color:#b9c9df}
   margin-bottom:18px;
   box-shadow:0 4px 18px #17243a12;
 }
+
 input{
+  display:block;
   width:100%;
   padding:13px;
   border:1px solid #cbd5e1;
   border-radius:8px;
-  margin:8px 0 15px;
+  margin:8px 0 16px;
   font-size:15px;
 }
+
 button{
   border:0;
   border-radius:8px;
@@ -45,98 +58,230 @@ button{
   font-weight:bold;
   cursor:pointer;
 }
-button.danger{background:#d93645}
-button.secondary{background:#52647c}
-.hidden{display:none}
-.message{margin-top:12px;font-size:14px}
-.session{
-  border:1px solid #dce5ef;
-  border-radius:11px;
-  padding:17px;
+
+button:disabled{
+  opacity:.6;
+  cursor:wait;
+}
+
+.danger{background:#d93645}
+.secondary{background:#52647c}
+
+.hidden{display:none!important}
+
+.message{
+  padding:12px;
+  border-radius:8px;
   margin-top:14px;
+  font-size:14px;
+  background:#eef4fb;
+  overflow-wrap:anywhere;
 }
-.session h3{margin:0 0 12px}
-.badge{
-  display:inline-block;
-  padding:5px 9px;
-  border-radius:20px;
-  background:#e5efff;
-  color:#1456a3;
-  font-size:12px;
-  margin:3px;
+
+.error{
+  background:#fff0f0;
+  color:#b42332;
 }
-.muted{color:#64748b;font-size:13px}
+
+.success{
+  background:#eaf8ef;
+  color:#16723c;
+}
+
+.muted{
+  color:#64748b;
+  font-size:13px;
+}
+
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:12px;
 }
+
 .info{
   background:#f2f6fb;
-  padding:12px;
-  border-radius:8px;
+  padding:14px;
+  border-radius:9px;
   overflow-wrap:anywhere;
 }
-footer{text-align:center;color:#718096;padding:25px;font-size:13px}
+
+.session{
+  border:1px solid #dce5ef;
+  border-radius:12px;
+  padding:18px;
+  margin-top:15px;
+}
+
+.session h3{margin-top:0}
+
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:20px;
+  background:#e5efff;
+  color:#1456a3;
+  font-size:12px;
+  margin:3px;
+  font-weight:bold;
+}
+
+.status{
+  display:inline-block;
+  padding:7px 12px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+  background:#eaf8ef;
+  color:#16723c;
+}
+
+.status.offline{
+  background:#fff3df;
+  color:#9a6100;
+}
+
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:15px;
+}
+
+a{color:#1769d2}
+
+footer{
+  text-align:center;
+  color:#718096;
+  padding:25px;
+  font-size:13px;
+}
+
 </style>
+
 </head>
 
 <body>
 
 <header>
   <h1>🛡️ Android Security Lab</h1>
-  <p>Private Sharing Dashboard</p>
+  <p>Private Administrator Dashboard</p>
 </header>
 
 <div class="container">
 
-  <section class="card" id="loginCard">
-    <h2>🔐 Administrator Login</h2>
-    <p class="muted">Sign in to view sharing sessions.</p>
+<!-- LOGIN -->
 
-    <label>Backend Server URL</label>
-    <input id="serverUrl"
-      placeholder="https://your-server.onrender.com">
+<section class="card" id="loginCard">
 
-    <label>Username</label>
-    <input id="username" autocomplete="username">
+  <h2>🔐 Administrator Login</h2>
 
-    <label>Password</label>
-    <input id="password" type="password"
-      autocomplete="current-password">
+  <p class="muted">
+    Sign in to access your private sharing dashboard.
+  </p>
 
-    <button onclick="login()">Sign In</button>
-    <div class="message" id="loginMessage"></div>
-  </section>
+  <form id="loginForm">
 
-  <section class="hidden" id="dashboard">
+```
+<label>Backend Server URL</label>
 
-    <div class="card">
-      <h2>📊 Sharing Overview</h2>
-      <div class="grid">
-        <div class="info">
-          <div class="muted">Active sessions</div>
-          <h2 id="sessionCount">0</h2>
-        </div>
-        <div class="info">
-          <div class="muted">Dashboard status</div>
-          <h3>Connected</h3>
-        </div>
-      </div>
-      <br>
-      <button onclick="loadSessions()">↻ Refresh Sessions</button>
-      <button class="danger" onclick="logout()">Logout</button>
-      <p class="muted">Sessions refresh automatically every 10 seconds.</p>
-    </div>
+<input
+  id="serverUrl"
+  type="url"
+  value="https://android-security-lab.onrender.com"
+  required
+>
 
-    <div class="card">
-      <h2>👥 Sharing Sessions</h2>
-      <div id="sessions">
-        Loading sessions...
-      </div>
-    </div>
+<label>Username</label>
 
-  </section>
+<input
+  id="username"
+  autocomplete="username"
+  required
+>
+
+<label>Password</label>
+
+<input
+  id="password"
+  type="password"
+  autocomplete="current-password"
+  required
+>
+
+<button id="loginButton" type="submit">
+  Sign In
+</button>
+```
+
+  </form>
+
+  <div id="loginMessage" class="message hidden"></div>
+
+</section>
+
+<!-- DASHBOARD -->
+
+<section id="dashboard" class="hidden">
+
+  <div class="card">
+
+```
+<h2>📊 Dashboard Overview</h2>
+
+<div class="grid">
+
+  <div class="info">
+    <div class="muted">Active sessions</div>
+    <h2 id="sessionCount">0</h2>
+  </div>
+
+  <div class="info">
+    <div class="muted">Server connection</div>
+    <h3 id="connectionStatus">Connected</h3>
+  </div>
+
+  <div class="info">
+    <div class="muted">Last updated</div>
+    <h3 id="lastUpdated">--</h3>
+  </div>
+
+</div>
+
+<div class="actions">
+
+  <button onclick="loadSessions()">
+    ↻ Refresh
+  </button>
+
+  <button class="secondary" onclick="logout()">
+    Logout
+  </button>
+
+</div>
+
+<p class="muted">
+  Automatic refresh every 15 seconds.
+</p>
+
+<div id="dashboardMessage" class="message hidden"></div>
+```
+
+  </div>
+
+  <div class="card">
+
+```
+<h2>👥 Sharing Sessions</h2>
+
+<div id="sessions">
+  Sign in to load sessions.
+</div>
+```
+
+  </div>
+
+</section>
 
 </div>
 
@@ -145,174 +290,422 @@ footer{text-align:center;color:#718096;padding:25px;font-size:13px}
 </footer>
 
 <script>
-let token = "";
-let api = "";
-let refreshTimer = null;
 
 const $ = id => document.getElementById(id);
 
-function showMessage(message, error=false) {
-  $("loginMessage").textContent = message;
-  $("loginMessage").style.color = error ? "#d93645" : "#16834a";
+let api = "";
+let token = "";
+let refreshTimer = null;
+let loadingSessions = false;
+
+
+/* MESSAGE DISPLAY */
+
+function message(element, text, type="") {
+
+  element.textContent = text;
+
+  element.className = "message";
+
+  if (type) {
+    element.classList.add(type);
+  }
+
+  element.classList.remove("hidden");
 }
 
-async function login() {
-  api = $("serverUrl").value.trim().replace(/\/+$/, "");
 
-  if (!api.startsWith("https://")) {
-    showMessage("Enter your secure HTTPS backend URL.", true);
-    return;
+/* REQUEST WITH TIMEOUT */
+
+async function request(url, options={}, timeout=70000) {
+
+  const controller = new AbortController();
+
+  const timer = setTimeout(
+    () => controller.abort(),
+    timeout
+  );
+
+  try {
+
+    return await fetch(url, {
+      ...options,
+      signal:controller.signal
+    });
+
+  } finally {
+
+    clearTimeout(timer);
+
   }
+
+}
+
+
+/* LOGIN */
+
+$("loginForm").addEventListener("submit", async event => {
+
+  event.preventDefault();
+
+  await login();
+
+});
+
+
+async function login() {
+
+  api = $("serverUrl").value.trim().replace(/\/+$/, "");
 
   const username = $("username").value.trim();
   const password = $("password").value;
 
-  if (!username || !password) {
-    showMessage("Enter your username and password.", true);
+  if (!api.startsWith("https://")) {
+
+    message(
+      $("loginMessage"),
+      "Please enter a valid HTTPS backend address.",
+      "error"
+    );
+
     return;
   }
 
-  showMessage("Signing in...");
+  if (!username || !password) {
+
+    message(
+      $("loginMessage"),
+      "Enter your username and password.",
+      "error"
+    );
+
+    return;
+  }
+
+  const button = $("loginButton");
+
+  button.disabled = true;
+  button.textContent = "Connecting...";
+
+  message(
+    $("loginMessage"),
+    "Connecting to your server. The first connection may take up to a minute."
+  );
 
   try {
-    const response = await fetch(api + "/api/login", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({username,password})
-    });
 
-    const data = await response.json();
+    const response = await request(
+      api + "/api/login",
+      {
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+          username,
+          password
+        })
+      }
+    );
+
+    const raw = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      throw new Error(
+        "Server returned an invalid response. Check your backend."
+      );
+    }
 
     if (!response.ok) {
-      throw new Error(data.error || "Login failed.");
+
+      throw new Error(
+        data.error || "Login rejected. Check your credentials."
+      );
+
+    }
+
+    if (!data.token) {
+
+      throw new Error(
+        "Authentication token was not received."
+      );
+
     }
 
     token = data.token;
 
+    $("password").value = "";
+
     $("loginCard").classList.add("hidden");
+
     $("dashboard").classList.remove("hidden");
 
-    $("password").value = "";
+    message(
+      $("dashboardMessage"),
+      "Successfully signed in.",
+      "success"
+    );
 
     await loadSessions();
 
-    refreshTimer = setInterval(loadSessions, 10000);
-
-  } catch (error) {
-    showMessage(error.message, true);
-  }
-}
-
-async function loadSessions() {
-  try {
-    const response = await fetch(api + "/api/sessions", {
-      headers: {
-        Authorization: "Bearer " + token
-      }
-    });
-
-    const responseText = await response.text();
-
-    console.log("Sessions HTTP Status:", response.status);
-    console.log("Sessions Server Response:", responseText);
-
-    let data = {};
-
-    try {
-      data = JSON.parse(responseText);
-    } catch {
-      throw new Error("Server returned an invalid response.");
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
     }
 
-    if (response.status === 401) {
-      $("sessions").textContent =
-        "Authentication rejected by server. Please check the server logs.";
+    refreshTimer = setInterval(
+      loadSessions,
+      15000
+    );
+
+  } catch (error) {
+
+    token = "";
+
+    let text = error.message;
+
+    if (error.name === "AbortError") {
+
+      text = "Server connection timed out. Please try again.";
+
+    }
+
+    message(
+      $("loginMessage"),
+      text,
+      "error"
+    );
+
+  } finally {
+
+    button.disabled = false;
+    button.textContent = "Sign In";
+
+  }
+
+}
+
+
+/* LOAD SESSIONS */
+
+async function loadSessions() {
+
+  if (!token || loadingSessions) return;
+
+  loadingSessions = true;
+
+  $("connectionStatus").textContent = "Connecting...";
+
+  try {
+
+    const response = await request(
+      api + "/api/sessions",
+      {
+        headers:{
+          Authorization:"Bearer " + token
+        }
+      },
+      30000
+    );
+
+    const raw = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      throw new Error("Invalid server response.");
+    }
+
+    if (response.status === 401 || response.status === 403) {
+
+      $("connectionStatus").textContent = "Authentication error";
+
+      message(
+        $("dashboardMessage"),
+        "The server rejected this login token. Please log out and sign in again.",
+        "error"
+      );
+
       return;
+
     }
 
     if (!response.ok) {
+
       throw new Error(
-        data.error || "Server error: HTTP " + response.status
+        data.error || "Server error: " + response.status
       );
+
     }
 
     renderSessions(data.sessions || []);
 
+    $("connectionStatus").textContent = "Connected";
+
+    $("lastUpdated").textContent =
+      new Date().toLocaleTimeString();
+
+    $("dashboardMessage").classList.add("hidden");
+
   } catch (error) {
-    console.error("Dashboard error:", error);
-    $("sessions").textContent = "Connection error: " + error.message;
+
+    $("connectionStatus").textContent = "Connection problem";
+
+    message(
+      $("dashboardMessage"),
+      "Could not refresh sessions: " + error.message +
+      ". Your login is still active. Try Refresh again.",
+      "error"
+    );
+
+  } finally {
+
+    loadingSessions = false;
+
   }
+
 }
 
+
+/* DISPLAY SESSIONS */
+
 function renderSessions(list) {
+
   $("sessionCount").textContent = list.length;
 
+  const container = $("sessions");
+
+  container.innerHTML = "";
+
   if (!list.length) {
-    $("sessions").innerHTML =
-      '<p class="muted">No one is currently sharing with you.</p>';
+
+    container.innerHTML =
+      '<p class="muted">No active sharing sessions yet.</p>';
+
     return;
+
   }
 
-  $("sessions").innerHTML = "";
-
   list.forEach(session => {
+
     const card = document.createElement("div");
+
     card.className = "session";
 
+
     const title = document.createElement("h3");
-    title.textContent = "Sharing session " + session.code;
+
+    title.textContent =
+      "Sharing Session " + session.code;
+
     card.appendChild(title);
 
-    const status = document.createElement("p");
-    status.textContent = session.connected
-      ? "🟢 Participant connected"
-      : "🟠 Participant disconnected";
+
+    const status = document.createElement("span");
+
+    status.className =
+      session.connected ? "status" : "status offline";
+
+    status.textContent =
+      session.connected
+        ? "● PARTICIPANT CONNECTED"
+        : "● PARTICIPANT DISCONNECTED";
+
     card.appendChild(status);
+
 
     const features = document.createElement("div");
 
-    Object.entries(session.sharing || {}).forEach(([key,value]) => {
-      if (value) {
+    features.style.margin = "15px 0";
+
+    Object.entries(session.sharing || {}).forEach(
+      ([key, value]) => {
+
+        if (!value) return;
+
         const badge = document.createElement("span");
+
         badge.className = "badge";
+
         badge.textContent = key.toUpperCase();
+
         features.appendChild(badge);
+
       }
-    });
+    );
 
     card.appendChild(features);
 
+
     const details = document.createElement("div");
+
     details.className = "grid";
 
+
+    /* LOCATION */
+
     if (session.location) {
+
       const loc = document.createElement("div");
+
       loc.className = "info";
 
       const lat = session.location.latitude;
       const lng = session.location.longitude;
 
-      const link = document.createElement("a");
-      link.href = "https://www.google.com/maps?q=" +
-        encodeURIComponent(lat + "," + lng);
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = "📍 Open shared location in Google Maps";
+      const heading = document.createElement("strong");
 
-      loc.append(
-        document.createTextNode("Latitude: " + lat),
-        document.createElement("br"),
-        document.createTextNode("Longitude: " + lng),
-        document.createElement("br"),
-        link
-      );
+      heading.textContent = "📍 Shared Location";
+
+      loc.appendChild(heading);
+
+      const coordinates = document.createElement("p");
+
+      coordinates.textContent =
+        "Latitude: " + lat +
+        "\nLongitude: " + lng;
+
+      loc.appendChild(coordinates);
+
+      const link = document.createElement("a");
+
+      link.href =
+        "https://www.google.com/maps?q=" +
+        encodeURIComponent(lat + "," + lng);
+
+      link.target = "_blank";
+
+      link.rel = "noopener noreferrer";
+
+      link.textContent = "Open in Google Maps";
+
+      loc.appendChild(link);
 
       details.appendChild(loc);
+
     }
 
+
+    /* DEVICE INFORMATION */
+
     if (session.device) {
+
       const dev = document.createElement("div");
+
       dev.className = "info";
+
+      const heading = document.createElement("strong");
+
+      heading.textContent = "📱 Shared Device Information";
+
+      dev.appendChild(heading);
 
       [
         "browser",
@@ -320,65 +713,136 @@ function renderSessions(list) {
         "language",
         "screen"
       ].forEach(key => {
-        const line = document.createElement("div");
-        line.textContent = key + ": " + (session.device[key] || "Unknown");
+
+        const line = document.createElement("p");
+
+        line.textContent =
+          key + ": " +
+          (session.device[key] || "Unknown");
+
         dev.appendChild(line);
+
       });
 
       details.appendChild(dev);
+
     }
+
 
     card.appendChild(details);
 
+
     const created = document.createElement("p");
+
     created.className = "muted";
-    created.textContent = "Created: " +
+
+    created.textContent =
+      "Created: " +
       new Date(session.createdAt).toLocaleString();
+
     card.appendChild(created);
 
+
+    /* END SESSION */
+
     const end = document.createElement("button");
+
     end.className = "danger";
+
     end.textContent = "End Sharing Session";
+
     end.onclick = () => endSession(session.id);
 
     card.appendChild(end);
-    $("sessions").appendChild(card);
+
+
+    container.appendChild(card);
+
   });
+
 }
 
+
+/* END SESSION */
+
 async function endSession(id) {
-  if (!confirm("End this sharing session?")) return;
+
+  if (!confirm("Are you sure you want to end this sharing session?")) {
+    return;
+  }
 
   try {
-    const response = await fetch(
-      api + "/api/sessions/" + encodeURIComponent(id) + "/end",
+
+    const response = await request(
+      api + "/api/sessions/" +
+      encodeURIComponent(id) + "/end",
       {
-        method: "POST",
-        headers: {Authorization:"Bearer " + token}
+        method:"POST",
+
+        headers:{
+          Authorization:"Bearer " + token
+        }
       }
     );
 
-    if (!response.ok) throw new Error("Unable to end session.");
+    const data = await response.json();
+
+    if (!response.ok) {
+
+      throw new Error(
+        data.error || "Unable to end session."
+      );
+
+    }
 
     await loadSessions();
 
   } catch (error) {
+
     alert(error.message);
+
   }
+
 }
 
+
+/* LOGOUT */
+
 function logout() {
+
   token = "";
 
-  if (refreshTimer) clearInterval(refreshTimer);
+  loadingSessions = false;
+
+  if (refreshTimer) {
+
+    clearInterval(refreshTimer);
+
+    refreshTimer = null;
+
+  }
 
   $("dashboard").classList.add("hidden");
+
   $("loginCard").classList.remove("hidden");
 
   $("password").value = "";
-  $("sessions").innerHTML = "";
+
+  $("sessions").textContent = "";
+
+  $("connectionStatus").textContent = "--";
+
+  $("sessionCount").textContent = "0";
+
+  message(
+    $("loginMessage"),
+    "You have signed out.",
+    "success"
+  );
+
 }
 
 </script>
+
 </body>
 </html>
