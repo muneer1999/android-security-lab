@@ -78,7 +78,7 @@ const token = header.replace(/^Bearer\s+/i, "");
 try {
 const decoded = jwt.verify(token, JWT_SECRET);
 
-```
+
 if (decoded.role !== "admin") {
   return res.status(403).json({
     error: "Admin access required."
@@ -87,7 +87,7 @@ if (decoded.role !== "admin") {
 
 req.admin = decoded;
 next();
-```
+
 
 } catch {
 res.status(401).json({
@@ -249,12 +249,12 @@ return next(new Error("Authentication required."));
 try {
 const decoded = jwt.verify(token, JWT_SECRET);
 
-```
+
 if (decoded.role === "admin") {
   socket.data.role = "admin";
   return next();
 }
-```
+
 
 } catch {
 // Check participant token.
@@ -280,7 +280,7 @@ io.on("connection", socket => {
 if (socket.data.role === "admin") {
 socket.join("dashboard");
 
-```
+
 socket.emit(
   "active-sessions",
   Array.from(sessions.values()).map(safeSession)
@@ -336,7 +336,7 @@ socket.on("webrtc-answer-ice", data => {
 });
 
 return;
-```
+
 
 }
 
@@ -365,7 +365,7 @@ safeSession(session)
 socket.on("share-location", data => {
 if (!session.sharing.location) return;
 
-```
+
 const latitude = Number(data?.latitude);
 const longitude = Number(data?.longitude);
 
@@ -389,7 +389,7 @@ io.to("dashboard").emit("location-updated", {
   id: session.id,
   location: session.location
 });
-```
+
 
 });
 
@@ -398,7 +398,7 @@ io.to("dashboard").emit("location-updated", {
 socket.on("share-device", data => {
 if (!session.sharing.device) return;
 
-```
+
 session.device = {
   browser: String(data?.browser || "").slice(0, 100),
   platform: String(data?.platform || "").slice(0, 100),
@@ -411,7 +411,7 @@ io.to("dashboard").emit("device-updated", {
   id: session.id,
   device: session.device
 });
-```
+
 
 });
 
@@ -422,14 +422,14 @@ if (!session.sharing.camera && !session.sharing.microphone) {
 return;
 }
 
-```
+
 if (!data?.description) return;
 
 io.to("dashboard").emit("webrtc-offer", {
   id: session.id,
   description: data.description
 });
-```
+
 
 });
 
@@ -440,14 +440,14 @@ if (!session.sharing.camera && !session.sharing.microphone) {
 return;
 }
 
-```
+
 if (!data?.candidate) return;
 
 io.to("dashboard").emit("webrtc-offer-ice", {
   id: session.id,
   candidate: data.candidate
 });
-```
+
 
 });
 
@@ -462,7 +462,7 @@ removeSession(sessionId);
 socket.on("disconnect", () => {
 const current = sessions.get(sessionId);
 
-```
+
 if (!current || current.participantSocketId !== socket.id) {
   return;
 }
@@ -474,7 +474,7 @@ io.to("dashboard").emit(
   "session-updated",
   safeSession(current)
 );
-```
+
 
 });
 
