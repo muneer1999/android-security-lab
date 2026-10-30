@@ -206,24 +206,41 @@ async function login() {
 async function loadSessions() {
   try {
     const response = await fetch(api + "/api/sessions", {
-      headers: {Authorization:"Bearer " + token}
+      headers: {
+        Authorization: "Bearer " + token
+      }
     });
 
-    if (response.status === 401) {
-      logout();
-      throw new Error("Your login expired. Please sign in again.");
+    const responseText = await response.text();
+
+    console.log("Sessions HTTP Status:", response.status);
+    console.log("Sessions Server Response:", responseText);
+
+    let data = {};
+
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      throw new Error("Server returned an invalid response.");
     }
 
-    const data = await response.json();
+    if (response.status === 401) {
+      $("sessions").textContent =
+        "Authentication rejected by server. Please check the server logs.";
+      return;
+    }
 
     if (!response.ok) {
-      throw new Error(data.error || "Unable to load sessions.");
+      throw new Error(
+        data.error || "Server error: HTTP " + response.status
+      );
     }
 
     renderSessions(data.sessions || []);
 
   } catch (error) {
-    $("sessions").textContent = error.message;
+    console.error("Dashboard error:", error);
+    $("sessions").textContent = "Connection error: " + error.message;
   }
 }
 
