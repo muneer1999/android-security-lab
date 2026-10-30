@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Android Security Lab — Private Dashboard</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#eef3f9;
+  color:#17243a;
+}
+header{
+  background:#10233f;
+  color:white;
+  padding:22px;
+}
+header h1{margin:0;font-size:23px}
+header p{margin:7px 0 0;color:#b9c9df}
+.container{max-width:1050px;margin:25px auto;padding:15px}
+.card{
+  background:white;
+  padding:22px;
+  border-radius:14px;
+  margin-bottom:18px;
+  box-shadow:0 4px 18px #17243a12;
+}
+input{
+  width:100%;
+  padding:13px;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  margin:8px 0 15px;
+  font-size:15px;
+}
+button{
+  border:0;
+  border-radius:8px;
+  padding:12px 17px;
+  background:#1769d2;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+button.danger{background:#d93645}
+button.secondary{background:#52647c}
+.hidden{display:none}
+.message{margin-top:12px;font-size:14px}
+.session{
+  border:1px solid #dce5ef;
+  border-radius:11px;
+  padding:17px;
+  margin-top:14px;
+}
+.session h3{margin:0 0 12px}
+.badge{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:20px;
+  background:#e5efff;
+  color:#1456a3;
+  font-size:12px;
+  margin:3px;
+}
+.muted{color:#64748b;font-size:13px}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.info{
+  background:#f2f6fb;
+  padding:12px;
+  border-radius:8px;
+  overflow-wrap:anywhere;
+}
+footer{text-align:center;color:#718096;padding:25px;font-size:13px}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🛡️ Android Security Lab</h1>
+  <p>Private Sharing Dashboard</p>
+</header>
+
+<div class="container">
+
+  <section class="card" id="loginCard">
+    <h2>🔐 Administrator Login</h2>
+    <p class="muted">Sign in to view sharing sessions.</p>
+
+    <label>Backend Server URL</label>
+    <input id="serverUrl"
+      placeholder="https://your-server.onrender.com">
+
+    <label>Username</label>
+    <input id="username" autocomplete="username">
+
+    <label>Password</label>
+    <input id="password" type="password"
+      autocomplete="current-password">
+
+    <button onclick="login()">Sign In</button>
+    <div class="message" id="loginMessage"></div>
+  </section>
+
+  <section class="hidden" id="dashboard">
+
+    <div class="card">
+      <h2>📊 Sharing Overview</h2>
+      <div class="grid">
+        <div class="info">
+          <div class="muted">Active sessions</div>
+          <h2 id="sessionCount">0</h2>
+        </div>
+        <div class="info">
+          <div class="muted">Dashboard status</div>
+          <h3>Connected</h3>
+        </div>
+      </div>
+      <br>
+      <button onclick="loadSessions()">↻ Refresh Sessions</button>
+      <button class="danger" onclick="logout()">Logout</button>
+      <p class="muted">Sessions refresh automatically every 10 seconds.</p>
+    </div>
+
+    <div class="card">
+      <h2>👥 Sharing Sessions</h2>
+      <div id="sessions">
+        Loading sessions...
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+<footer>
+  Android Security Lab · Private Administrator Dashboard
+</footer>
+
+<script>
+let token = "";
+let api = "";
+let refreshTimer = null;
+
+const $ = id => document.getElementById(id);
+
+function showMessage(message, error=false) {
+  $("loginMessage").textContent = message;
+  $("loginMessage").style.color = error ? "#d93645" : "#16834a";
+}
+
+async function login() {
+  api = $("serverUrl").value.trim().replace(/\/+$/, "");
+
+  if (!api.startsWith("https://")) {
+    showMessage("Enter your secure HTTPS backend URL.", true);
+    return;
+  }
+
+  const username = $("username").value.trim();
+  const password = $("password").value;
+
+  if (!username || !password) {
+    showMessage("Enter your username and password.", true);
+    return;
+  }
+
+  showMessage("Signing in...");
+
+  try {
+    const response = await fetch(api + "/api/login", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({username,password})
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Login failed.");
+    }
+
+    token = data.token;
+
+    $("loginCard").classList.add("hidden");
+    $("dashboard").classList.remove("hidden");
+
+    $("password").value = "";
+
+    await loadSessions();
+
+    refreshTimer = setInterval(loadSessions, 10000);
+
+  } catch (error) {
+    showMessage(error.message, true);
+  }
+}
+
+async function loadSessions() {
+  try {
+    const response = await fetch(api + "/api/sessions", {
+      headers: {Authorization:"Bearer " + token}
+    });
+
+    if (response.status === 401) {
+      logout();
+      throw new Error("Your login expired. Please sign in again.");
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to load sessions.");
+    }
+
+    renderSessions(data.sessions || []);
+
+  } catch (error) {
+    $("sessions").textContent = error.message;
+  }
+}
+
+function renderSessions(list) {
+  $("sessionCount").textContent = list.length;
+
+  if (!list.length) {
+    $("sessions").innerHTML =
+      '<p class="muted">No one is currently sharing with you.</p>';
+    return;
+  }
+
+  $("sessions").innerHTML = "";
+
+  list.forEach(session => {
+    const card = document.createElement("div");
+    card.className = "session";
+
+    const title = document.createElement("h3");
+    title.textContent = "Sharing session " + session.code;
+    card.appendChild(title);
+
+    const status = document.createElement("p");
+    status.textContent = session.connected
+      ? "🟢 Participant connected"
+      : "🟠 Participant disconnected";
+    card.appendChild(status);
+
+    const features = document.createElement("div");
+
+    Object.entries(session.sharing || {}).forEach(([key,value]) => {
+      if (value) {
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = key.toUpperCase();
+        features.appendChild(badge);
+      }
+    });
+
+    card.appendChild(features);
+
+    const details = document.createElement("div");
+    details.className = "grid";
+
+    if (session.location) {
+      const loc = document.createElement("div");
+      loc.className = "info";
+
+      const lat = session.location.latitude;
+      const lng = session.location.longitude;
+
+      const link = document.createElement("a");
+      link.href = "https://www.google.com/maps?q=" +
+        encodeURIComponent(lat + "," + lng);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "📍 Open shared location in Google Maps";
+
+      loc.append(
+        document.createTextNode("Latitude: " + lat),
+        document.createElement("br"),
+        document.createTextNode("Longitude: " + lng),
+        document.createElement("br"),
+        link
+      );
+
+      details.appendChild(loc);
+    }
+
+    if (session.device) {
+      const dev = document.createElement("div");
+      dev.className = "info";
+
+      [
+        "browser",
+        "platform",
+        "language",
+        "screen"
+      ].forEach(key => {
+        const line = document.createElement("div");
+        line.textContent = key + ": " + (session.device[key] || "Unknown");
+        dev.appendChild(line);
+      });
+
+      details.appendChild(dev);
+    }
+
+    card.appendChild(details);
+
+    const created = document.createElement("p");
+    created.className = "muted";
+    created.textContent = "Created: " +
+      new Date(session.createdAt).toLocaleString();
+    card.appendChild(created);
+
+    const end = document.createElement("button");
+    end.className = "danger";
+    end.textContent = "End Sharing Session";
+    end.onclick = () => endSession(session.id);
+
+    card.appendChild(end);
+    $("sessions").appendChild(card);
+  });
+}
+
+async function endSession(id) {
+  if (!confirm("End this sharing session?")) return;
+
+  try {
+    const response = await fetch(
+      api + "/api/sessions/" + encodeURIComponent(id) + "/end",
+      {
+        method: "POST",
+        headers: {Authorization:"Bearer " + token}
+      }
+    );
+
+    if (!response.ok) throw new Error("Unable to end session.");
+
+    await loadSessions();
+
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function logout() {
+  token = "";
+
+  if (refreshTimer) clearInterval(refreshTimer);
+
+  $("dashboard").classList.add("hidden");
+  $("loginCard").classList.remove("hidden");
+
+  $("password").value = "";
+  $("sessions").innerHTML = "";
+}
+
+</script>
+</body>
+</html>
