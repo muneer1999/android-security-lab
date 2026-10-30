@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10233f">
 <title>Android Security Lab | Admin Dashboard</title>
 
 <style>
@@ -26,7 +27,7 @@ header h1{margin:0;font-size:23px}
 header p{color:#b9c9df;margin:7px 0 0}
 
 .container{
-  max-width:1100px;
+  max-width:1200px;
   margin:25px auto;
   padding:15px;
 }
@@ -66,6 +67,7 @@ button:disabled{
 
 .danger{background:#d93645}
 .secondary{background:#52647c}
+.success-btn{background:#16834a}
 
 .hidden{display:none!important}
 
@@ -78,20 +80,10 @@ button:disabled{
   overflow-wrap:anywhere;
 }
 
-.error{
-  background:#fff0f0;
-  color:#b42332;
-}
+.error{background:#fff0f0;color:#b42332}
+.success{background:#eaf8ef;color:#16723c}
 
-.success{
-  background:#eaf8ef;
-  color:#16723c;
-}
-
-.muted{
-  color:#64748b;
-  font-size:13px;
-}
+.muted{color:#64748b;font-size:13px}
 
 .grid{
   display:grid;
@@ -148,7 +140,42 @@ button:disabled{
   margin-top:15px;
 }
 
-a{color:#1769d2}
+.live-panel{
+  margin-top:18px;
+  background:#101d30;
+  color:white;
+  border-radius:12px;
+  padding:16px;
+}
+
+.live-panel h4{margin:0 0 12px}
+
+.live-video{
+  width:100%;
+  max-height:440px;
+  background:#000;
+  border-radius:10px;
+  display:block;
+}
+
+.live-audio{
+  width:100%;
+  margin-top:12px;
+}
+
+.live-status{
+  color:#9fb9d8;
+  font-size:13px;
+  margin-top:10px;
+}
+
+.location-link{
+  display:inline-block;
+  margin-top:8px;
+  font-weight:bold;
+}
+
+.actions button{margin-top:5px}
 
 footer{
   text-align:center;
@@ -157,6 +184,10 @@ footer{
   font-size:13px;
 }
 
+@media(max-width:600px){
+  .container{padding:10px}
+  .card{padding:16px}
+}
 </style>
 
 </head>
@@ -165,7 +196,7 @@ footer{
 
 <header>
   <h1>🛡️ Android Security Lab</h1>
-  <p>Private Administrator Dashboard</p>
+  <p>Private Live Monitoring Dashboard</p>
 </header>
 
 <div class="container">
@@ -174,49 +205,50 @@ footer{
 
 <section class="card" id="loginCard">
 
-  <h2>🔐 Administrator Login</h2>
+<h2>🔐 Administrator Login</h2>
 
-  <p class="muted">
-    Sign in to access your private sharing dashboard.
-  </p>
+<p class="muted">
+Sign in to access your private sharing dashboard.
+</p>
 
-  <form id="loginForm">
-
+<form id="loginForm">
 
 <label>Backend Server URL</label>
 
 <input
-  id="serverUrl"
-  type="url"
-  value="https://android-security-lab.onrender.com"
-  required
+id="serverUrl"
+type="url"
+value="https://android-security-lab.onrender.com"
+required
+
 >
 
 <label>Username</label>
 
 <input
-  id="username"
-  autocomplete="username"
-  required
+id="username"
+autocomplete="username"
+required
+
 >
 
 <label>Password</label>
 
 <input
-  id="password"
-  type="password"
-  autocomplete="current-password"
-  required
+id="password"
+type="password"
+autocomplete="current-password"
+required
+
 >
 
 <button id="loginButton" type="submit">
-  Sign In
+Sign In
 </button>
 
+</form>
 
-  </form>
-
-  <div id="loginMessage" class="message hidden"></div>
+<div id="loginMessage" class="message hidden"></div>
 
 </section>
 
@@ -224,69 +256,70 @@ footer{
 
 <section id="dashboard" class="hidden">
 
-  <div class="card">
-
+<div class="card">
 
 <h2>📊 Dashboard Overview</h2>
 
 <div class="grid">
 
-  <div class="info">
-    <div class="muted">Active sessions</div>
-    <h2 id="sessionCount">0</h2>
-  </div>
+<div class="info">
+<div class="muted">Active sessions</div>
+<h2 id="sessionCount">0</h2>
+</div>
 
-  <div class="info">
-    <div class="muted">Server connection</div>
-    <h3 id="connectionStatus">Connected</h3>
-  </div>
+<div class="info">
+<div class="muted">Server connection</div>
+<h3 id="connectionStatus">Connecting...</h3>
+</div>
 
-  <div class="info">
-    <div class="muted">Last updated</div>
-    <h3 id="lastUpdated">--</h3>
-  </div>
+<div class="info">
+<div class="muted">Live media connection</div>
+<h3 id="mediaStatus">Not watching</h3>
+</div>
+
+<div class="info">
+<div class="muted">Last updated</div>
+<h3 id="lastUpdated">--</h3>
+</div>
 
 </div>
 
 <div class="actions">
 
-  <button onclick="loadSessions()">
-    ↻ Refresh
-  </button>
+<button onclick="loadSessions()">↻ Refresh</button>
 
-  <button class="secondary" onclick="logout()">
-    Logout
-  </button>
+<button class="secondary" onclick="logout()">Logout</button>
 
 </div>
 
 <p class="muted">
-  Automatic refresh every 15 seconds.
+Sessions refresh automatically every 15 seconds.
+Live media requires selecting a connected session.
 </p>
 
 <div id="dashboardMessage" class="message hidden"></div>
 
-  </div>
+</div>
 
-  <div class="card">
-
+<div class="card">
 
 <h2>👥 Sharing Sessions</h2>
 
 <div id="sessions">
-  Sign in to load sessions.
+Sign in to load sessions.
 </div>
 
-
-  </div>
+</div>
 
 </section>
 
 </div>
 
 <footer>
-  Android Security Lab · Private Administrator Dashboard
+Android Security Lab · Private Administrator Dashboard
 </footer>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 
 <script>
 
@@ -296,54 +329,47 @@ let api = "";
 let token = "";
 let refreshTimer = null;
 let loadingSessions = false;
+let socket = null;
 
+let sessionList = [];
+let peers = new Map();
 
-/* MESSAGE DISPLAY */
-
-function message(element, text, type="") {
+function message(element,text,type=""){
 
   element.textContent = text;
-
   element.className = "message";
 
-  if (type) {
-    element.classList.add(type);
-  }
+  if(type)element.classList.add(type);
 
   element.classList.remove("hidden");
 }
 
-
-/* REQUEST WITH TIMEOUT */
-
-async function request(url, options={}, timeout=70000) {
+async function request(url,options={},timeout=70000){
 
   const controller = new AbortController();
 
   const timer = setTimeout(
-    () => controller.abort(),
+    ()=>controller.abort(),
     timeout
   );
 
-  try {
+  try{
 
-    return await fetch(url, {
+    return await fetch(url,{
       ...options,
       signal:controller.signal
     });
 
-  } finally {
+  }finally{
 
     clearTimeout(timer);
 
   }
-
 }
-
 
 /* LOGIN */
 
-$("loginForm").addEventListener("submit", async event => {
+$("loginForm").addEventListener("submit",async event=>{
 
   event.preventDefault();
 
@@ -351,30 +377,18 @@ $("loginForm").addEventListener("submit", async event => {
 
 });
 
+async function login(){
 
-async function login() {
-
-  api = $("serverUrl").value.trim().replace(/\/+$/, "");
+  api = $("serverUrl").value.trim().replace(/\/+$/,"");
 
   const username = $("username").value.trim();
   const password = $("password").value;
 
-  if (!api.startsWith("https://")) {
+  if(!api.startsWith("https://")){
 
     message(
       $("loginMessage"),
       "Please enter a valid HTTPS backend address.",
-      "error"
-    );
-
-    return;
-  }
-
-  if (!username || !password) {
-
-    message(
-      $("loginMessage"),
-      "Enter your username and password.",
       "error"
     );
 
@@ -391,17 +405,15 @@ async function login() {
     "Connecting to your server. The first connection may take up to a minute."
   );
 
-  try {
+  try{
 
     const response = await request(
       api + "/api/login",
       {
         method:"POST",
-
         headers:{
           "Content-Type":"application/json"
         },
-
         body:JSON.stringify({
           username,
           password
@@ -409,31 +421,19 @@ async function login() {
       }
     );
 
-    const raw = await response.text();
+    const data = await response.json();
 
-    let data;
-
-    try {
-      data = JSON.parse(raw);
-    } catch {
-      throw new Error(
-        "Server returned an invalid response. Check your backend."
-      );
-    }
-
-    if (!response.ok) {
+    if(!response.ok){
 
       throw new Error(
-        data.error || "Login rejected. Check your credentials."
+        data.error || "Login rejected."
       );
 
     }
 
-    if (!data.token) {
+    if(!data.token){
 
-      throw new Error(
-        "Authentication token was not received."
-      );
+      throw new Error("Authentication token was not received.");
 
     }
 
@@ -442,45 +442,27 @@ async function login() {
     $("password").value = "";
 
     $("loginCard").classList.add("hidden");
-
     $("dashboard").classList.remove("hidden");
 
-    message(
-      $("dashboardMessage"),
-      "Successfully signed in.",
-      "success"
-    );
+    connectDashboardSocket();
 
     await loadSessions();
 
-    if (refreshTimer) {
-      clearInterval(refreshTimer);
-    }
+    if(refreshTimer)clearInterval(refreshTimer);
 
-    refreshTimer = setInterval(
-      loadSessions,
-      15000
-    );
+    refreshTimer = setInterval(loadSessions,15000);
 
-  } catch (error) {
+  }catch(error){
 
     token = "";
 
-    let text = error.message;
-
-    if (error.name === "AbortError") {
-
-      text = "Server connection timed out. Please try again.";
-
-    }
-
     message(
       $("loginMessage"),
-      text,
+      error.message,
       "error"
     );
 
-  } finally {
+  }finally{
 
     button.disabled = false;
     button.textContent = "Sign In";
@@ -489,18 +471,129 @@ async function login() {
 
 }
 
+/* DASHBOARD SOCKET */
+
+function connectDashboardSocket(){
+
+  if(socket){
+    socket.disconnect();
+    socket = null;
+  }
+
+  if(typeof io !== "function"){
+
+    $("connectionStatus").textContent = "Socket.IO unavailable";
+    return;
+
+  }
+
+  socket = io(api,{
+    auth:{token},
+    transports:["websocket","polling"]
+  });
+
+  socket.on("connect",()=>{
+
+    $("connectionStatus").textContent = "Connected";
+
+    loadSessions();
+
+  });
+
+  socket.on("connect_error",error=>{
+
+    $("connectionStatus").textContent = "Connection error";
+
+    message(
+      $("dashboardMessage"),
+      "Live connection error: " + error.message,
+      "error"
+    );
+
+  });
+
+  socket.on("disconnect",()=>{
+
+    $("connectionStatus").textContent = "Disconnected";
+
+  });
+
+  socket.on("session-updated",session=>{
+
+    updateLocalSession(session);
+
+  });
+
+  socket.on("session-removed",data=>{
+
+    if(data && data.id){
+
+      stopPeer(data.id);
+
+    }
+
+    loadSessions();
+
+  });
+
+  socket.on("location-updated",data=>{
+
+    if(!data || !data.id)return;
+
+    const session = sessionList.find(s=>s.id===data.id);
+
+    if(session){
+
+      session.location = data.location;
+
+      renderSessions(sessionList);
+
+    }
+
+  });
+
+  socket.on("device-updated",data=>{
+
+    if(!data || !data.id)return;
+
+    const session = sessionList.find(s=>s.id===data.id);
+
+    if(session){
+
+      session.device = data.device;
+
+      renderSessions(sessionList);
+
+    }
+
+  });
+
+  socket.on("webrtc-offer",handleOffer);
+
+  socket.on("webrtc-offer-ice",handleOfferIce);
+
+  socket.on("active-sessions",list=>{
+
+    if(Array.isArray(list)){
+
+      sessionList = list;
+      renderSessions(sessionList);
+
+    }
+
+  });
+
+}
 
 /* LOAD SESSIONS */
 
-async function loadSessions() {
+async function loadSessions(){
 
-  if (!token || loadingSessions) return;
+  if(!token || loadingSessions)return;
 
   loadingSessions = true;
 
-  $("connectionStatus").textContent = "Connecting...";
-
-  try {
+  try{
 
     const response = await request(
       api + "/api/sessions",
@@ -512,23 +605,15 @@ async function loadSessions() {
       30000
     );
 
-    const raw = await response.text();
+    const data = await response.json();
 
-    let data;
+    if(response.status===401 || response.status===403){
 
-    try {
-      data = JSON.parse(raw);
-    } catch {
-      throw new Error("Invalid server response.");
-    }
-
-    if (response.status === 401 || response.status === 403) {
-
-      $("connectionStatus").textContent = "Authentication error";
+      logout();
 
       message(
-        $("dashboardMessage"),
-        "The server rejected this login token. Please log out and sign in again.",
+        $("loginMessage"),
+        "Your login expired. Please sign in again.",
         "error"
       );
 
@@ -536,15 +621,15 @@ async function loadSessions() {
 
     }
 
-    if (!response.ok) {
+    if(!response.ok){
 
-      throw new Error(
-        data.error || "Server error: " + response.status
-      );
+      throw new Error(data.error || "Server error.");
 
     }
 
-    renderSessions(data.sessions || []);
+    sessionList = data.sessions || [];
+
+    renderSessions(sessionList);
 
     $("connectionStatus").textContent = "Connected";
 
@@ -553,18 +638,17 @@ async function loadSessions() {
 
     $("dashboardMessage").classList.add("hidden");
 
-  } catch (error) {
+  }catch(error){
 
     $("connectionStatus").textContent = "Connection problem";
 
     message(
       $("dashboardMessage"),
-      "Could not refresh sessions: " + error.message +
-      ". Your login is still active. Try Refresh again.",
+      "Could not refresh sessions: " + error.message,
       "error"
     );
 
-  } finally {
+  }finally{
 
     loadingSessions = false;
 
@@ -572,10 +656,30 @@ async function loadSessions() {
 
 }
 
+function updateLocalSession(updated){
+
+  const index = sessionList.findIndex(s=>s.id===updated.id);
+
+  if(index>=0){
+
+    sessionList[index] = {
+      ...sessionList[index],
+      ...updated
+    };
+
+  }else{
+
+    sessionList.push(updated);
+
+  }
+
+  renderSessions(sessionList);
+
+}
 
 /* DISPLAY SESSIONS */
 
-function renderSessions(list) {
+function renderSessions(list){
 
   $("sessionCount").textContent = list.length;
 
@@ -583,7 +687,7 @@ function renderSessions(list) {
 
   container.innerHTML = "";
 
-  if (!list.length) {
+  if(!list.length){
 
     container.innerHTML =
       '<p class="muted">No active sharing sessions yet.</p>';
@@ -592,12 +696,11 @@ function renderSessions(list) {
 
   }
 
-  list.forEach(session => {
+  list.forEach(session=>{
 
     const card = document.createElement("div");
 
     card.className = "session";
-
 
     const title = document.createElement("h3");
 
@@ -605,7 +708,6 @@ function renderSessions(list) {
       "Sharing Session " + session.code;
 
     card.appendChild(title);
-
 
     const status = document.createElement("span");
 
@@ -619,20 +721,18 @@ function renderSessions(list) {
 
     card.appendChild(status);
 
-
     const features = document.createElement("div");
 
     features.style.margin = "15px 0";
 
     Object.entries(session.sharing || {}).forEach(
-      ([key, value]) => {
+      ([key,value])=>{
 
-        if (!value) return;
+        if(!value)return;
 
         const badge = document.createElement("span");
 
         badge.className = "badge";
-
         badge.textContent = key.toUpperCase();
 
         features.appendChild(badge);
@@ -642,22 +742,17 @@ function renderSessions(list) {
 
     card.appendChild(features);
 
-
     const details = document.createElement("div");
 
     details.className = "grid";
 
-
     /* LOCATION */
 
-    if (session.location) {
+    if(session.location){
 
       const loc = document.createElement("div");
 
       loc.className = "info";
-
-      const lat = session.location.latitude;
-      const lng = session.location.longitude;
 
       const heading = document.createElement("strong");
 
@@ -668,8 +763,9 @@ function renderSessions(list) {
       const coordinates = document.createElement("p");
 
       coordinates.textContent =
-        "Latitude: " + lat +
-        "\nLongitude: " + lng;
+        "Latitude: " + session.location.latitude +
+        "\nLongitude: " + session.location.longitude +
+        "\nAccuracy: " + (session.location.accuracy || "Unknown") + " m";
 
       loc.appendChild(coordinates);
 
@@ -677,13 +773,15 @@ function renderSessions(list) {
 
       link.href =
         "https://www.google.com/maps?q=" +
-        encodeURIComponent(lat + "," + lng);
+        encodeURIComponent(
+          session.location.latitude + "," +
+          session.location.longitude
+        );
 
       link.target = "_blank";
-
       link.rel = "noopener noreferrer";
-
-      link.textContent = "Open in Google Maps";
+      link.textContent = "Open shared location in Google Maps";
+      link.className = "location-link";
 
       loc.appendChild(link);
 
@@ -691,10 +789,9 @@ function renderSessions(list) {
 
     }
 
+    /* DEVICE */
 
-    /* DEVICE INFORMATION */
-
-    if (session.device) {
+    if(session.device){
 
       const dev = document.createElement("div");
 
@@ -702,22 +799,16 @@ function renderSessions(list) {
 
       const heading = document.createElement("strong");
 
-      heading.textContent = "📱 Shared Device Information";
+      heading.textContent = "📱 Device Information";
 
       dev.appendChild(heading);
 
-      [
-        "browser",
-        "platform",
-        "language",
-        "screen"
-      ].forEach(key => {
+      ["browser","platform","language","screen"].forEach(key=>{
 
         const line = document.createElement("p");
 
         line.textContent =
-          key + ": " +
-          (session.device[key] || "Unknown");
+          key + ": " + (session.device[key] || "Unknown");
 
         dev.appendChild(line);
 
@@ -727,33 +818,110 @@ function renderSessions(list) {
 
     }
 
-
     card.appendChild(details);
 
+    /* LIVE MEDIA */
+
+    const hasMedia =
+      session.sharing &&
+      (session.sharing.camera || session.sharing.microphone);
+
+    if(hasMedia){
+
+      const live = document.createElement("div");
+
+      live.className = "live-panel";
+
+      const heading = document.createElement("h4");
+
+      heading.textContent = "📡 Live Media";
+
+      live.appendChild(heading);
+
+      if(session.sharing.camera){
+
+        const video = document.createElement("video");
+
+        video.id = "video-" + session.id;
+        video.className = "live-video";
+        video.autoplay = true;
+        video.playsInline = true;
+        video.controls = true;
+
+        live.appendChild(video);
+
+      }else if(session.sharing.microphone){
+
+        const audio = document.createElement("audio");
+
+        audio.id = "audio-" + session.id;
+        audio.className = "live-audio";
+        audio.autoplay = true;
+        audio.controls = true;
+
+        live.appendChild(audio);
+
+      }
+
+      const mediaStatus = document.createElement("div");
+
+      mediaStatus.id = "media-" + session.id;
+      mediaStatus.className = "live-status";
+
+      mediaStatus.textContent =
+        peers.has(session.id)
+          ? "Live connection active."
+          : "Not connected to live media.";
+
+      live.appendChild(mediaStatus);
+
+      const watch = document.createElement("button");
+
+      watch.className = "success-btn";
+      watch.textContent =
+        peers.has(session.id) ? "Reconnect Live Media" : "▶ Watch Live";
+
+      watch.disabled = !session.connected;
+
+      watch.onclick = ()=>watchSession(session);
+
+      live.appendChild(watch);
+
+      const stop = document.createElement("button");
+
+      stop.className = "secondary";
+      stop.textContent = "Stop Live Viewing";
+
+      stop.onclick = ()=>stopPeer(session.id);
+
+      live.appendChild(stop);
+
+      card.appendChild(live);
+
+    }
+
+    /* CREATED */
 
     const created = document.createElement("p");
 
     created.className = "muted";
 
     created.textContent =
-      "Created: " +
-      new Date(session.createdAt).toLocaleString();
+      "Created: " + new Date(session.createdAt).toLocaleString();
 
     card.appendChild(created);
-
 
     /* END SESSION */
 
     const end = document.createElement("button");
 
     end.className = "danger";
-
+    end.style.marginTop = "10px";
     end.textContent = "End Sharing Session";
 
-    end.onclick = () => endSession(session.id);
+    end.onclick = ()=>endSession(session.id);
 
     card.appendChild(end);
-
 
     container.appendChild(card);
 
@@ -761,23 +929,261 @@ function renderSessions(list) {
 
 }
 
+/* START WATCHING */
 
-/* END SESSION */
+function watchSession(session){
 
-async function endSession(id) {
+  if(!socket || !socket.connected){
 
-  if (!confirm("Are you sure you want to end this sharing session?")) {
+    alert("Dashboard live connection is not available.");
     return;
+
   }
 
-  try {
+  if(!session.connected){
+
+    alert("Participant is disconnected.");
+    return;
+
+  }
+
+  const id = session.id;
+
+  stopPeer(id);
+
+  const pc = new RTCPeerConnection({
+    iceServers:[
+      {urls:"stun:stun.l.google.com:19302"}
+    ]
+  });
+
+  const state = {
+    pc,
+    pendingIce:[]
+  };
+
+  peers.set(id,state);
+
+  pc.ontrack = event=>{
+
+    const stream = event.streams[0];
+
+    if(session.sharing.camera){
+
+      const video = $("video-" + id);
+
+      if(video){
+
+        video.srcObject = stream;
+
+        video.play().catch(()=>{
+
+          setMediaStatus(id,"Press play on the video to start playback.");
+
+        });
+
+      }
+
+    }else if(session.sharing.microphone){
+
+      const audio = $("audio-" + id);
+
+      if(audio){
+
+        audio.srcObject = stream;
+
+        audio.play().catch(()=>{
+
+          setMediaStatus(id,"Press play on the audio player.");
+
+        });
+
+      }
+
+    }
+
+    setMediaStatus(id,"🟢 Live media received.");
+
+  };
+
+  pc.onicecandidate = event=>{
+
+    if(event.candidate && socket){
+
+      socket.emit("webrtc-answer-ice",{
+        id,
+        candidate:event.candidate
+      });
+
+    }
+
+  };
+
+  pc.onconnectionstatechange = ()=>{
+
+    const state = pc.connectionState;
+
+    if(state==="connected"){
+
+      setMediaStatus(id,"🟢 Live connection established.");
+
+    }else if(state==="failed"){
+
+      setMediaStatus(id,"Connection failed. Check network or TURN configuration.");
+
+    }else if(state==="disconnected"){
+
+      setMediaStatus(id,"Connection temporarily disconnected.");
+
+    }
+
+  };
+
+  setMediaStatus(id,"Requesting live media from participant...");
+
+  socket.emit("watch-session",{id});
+
+  $("mediaStatus").textContent = "Watching session " + session.code;
+
+}
+
+/* RECEIVE WEBRTC OFFER */
+
+async function handleOffer(data){
+
+  if(!data || !data.id || !data.description)return;
+
+  const entry = peers.get(data.id);
+
+  if(!entry)return;
+
+  const pc = entry.pc;
+
+  try{
+
+    await pc.setRemoteDescription(data.description);
+
+    for(const candidate of entry.pendingIce){
+
+      await pc.addIceCandidate(candidate);
+
+    }
+
+    entry.pendingIce = [];
+
+    const answer = await pc.createAnswer();
+
+    await pc.setLocalDescription(answer);
+
+    socket.emit("webrtc-answer",{
+      id:data.id,
+      description:pc.localDescription
+    });
+
+    setMediaStatus(data.id,"Connecting live media...");
+
+  }catch(error){
+
+    console.error("WebRTC offer error:",error);
+
+    setMediaStatus(data.id,"WebRTC error: " + error.message);
+
+  }
+
+}
+
+/* RECEIVE PARTICIPANT ICE */
+
+async function handleOfferIce(data){
+
+  if(!data || !data.id || !data.candidate)return;
+
+  const entry = peers.get(data.id);
+
+  if(!entry)return;
+
+  try{
+
+    const candidate = new RTCIceCandidate(data.candidate);
+
+    if(entry.pc.remoteDescription){
+
+      await entry.pc.addIceCandidate(candidate);
+
+    }else{
+
+      entry.pendingIce.push(candidate);
+
+    }
+
+  }catch(error){
+
+    console.warn("ICE candidate error:",error);
+
+  }
+
+}
+
+/* STATUS */
+
+function setMediaStatus(id,text){
+
+  const element = $("media-" + id);
+
+  if(element)element.textContent = text;
+
+}
+
+/* STOP LIVE VIEWING */
+
+function stopPeer(id){
+
+  const entry = peers.get(id);
+
+  if(entry){
+
+    entry.pc.close();
+
+    peers.delete(id);
+
+  }
+
+  const video = $("video-" + id);
+
+  if(video){
+
+    video.pause();
+    video.srcObject = null;
+
+  }
+
+  const audio = $("audio-" + id);
+
+  if(audio){
+
+    audio.pause();
+    audio.srcObject = null;
+
+  }
+
+  setMediaStatus(id,"Live viewing stopped.");
+
+  $("mediaStatus").textContent = "Not watching";
+
+}
+
+/* END SHARING */
+
+async function endSession(id){
+
+  if(!confirm("End this participant's sharing session?"))return;
+
+  try{
 
     const response = await request(
-      api + "/api/sessions/" +
-      encodeURIComponent(id) + "/end",
+      api + "/api/sessions/" + encodeURIComponent(id) + "/end",
       {
         method:"POST",
-
         headers:{
           Authorization:"Bearer " + token
         }
@@ -786,17 +1192,17 @@ async function endSession(id) {
 
     const data = await response.json();
 
-    if (!response.ok) {
+    if(!response.ok){
 
-      throw new Error(
-        data.error || "Unable to end session."
-      );
+      throw new Error(data.error || "Unable to end session.");
 
     }
 
+    stopPeer(id);
+
     await loadSessions();
 
-  } catch (error) {
+  }catch(error){
 
     alert(error.message);
 
@@ -804,25 +1210,35 @@ async function endSession(id) {
 
 }
 
-
 /* LOGOUT */
 
-function logout() {
+function logout(){
 
   token = "";
 
-  loadingSessions = false;
-
-  if (refreshTimer) {
+  if(refreshTimer){
 
     clearInterval(refreshTimer);
-
     refreshTimer = null;
 
   }
 
-  $("dashboard").classList.add("hidden");
+  for(const id of peers.keys()){
 
+    stopPeer(id);
+
+  }
+
+  if(socket){
+
+    socket.disconnect();
+    socket = null;
+
+  }
+
+  sessionList = [];
+
+  $("dashboard").classList.add("hidden");
   $("loginCard").classList.remove("hidden");
 
   $("password").value = "";
@@ -830,8 +1246,8 @@ function logout() {
   $("sessions").textContent = "";
 
   $("connectionStatus").textContent = "--";
-
   $("sessionCount").textContent = "0";
+  $("mediaStatus").textContent = "Not watching";
 
   message(
     $("loginMessage"),
